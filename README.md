@@ -1,31 +1,30 @@
-# IVOIREX V1
+# IVOIREX V1 Ultra
 
-**La ville numérique ivoirienne** : un parcours connecté pour apprendre, contribuer, prouver ses compétences et saisir des opportunités.
+**La ville numérique de la nouvelle génération ivoirienne.** IVOIREX relie un parcours d’apprentissage, la contribution communautaire, les challenges, les projets et les opportunités dans un même monde.
 
-## Démarrer
+## Architecture active
+
+- `apps/web` — Next.js 15 / React 19 / TypeScript strict, avec la carte IVOIREX World et recherche API.
+- `apps/api` — FastAPI, SQLAlchemy 2, Pydantic v2, authentification JWT et PostgreSQL.
+- `postgres` et `redis` — services privés Docker ; Redis est réservé à la future diffusion realtime/rate limiting.
+
+## Lancer
 
 ```bash
 cp .env.example .env
-docker compose up --build
-```
-
-- Web : http://localhost:43100
-- API : http://localhost:43101/docs
-- Santé : http://localhost:43101/health
-
-La V1 livre les boucles produit persistées : identité JWT, profil, catalogue et progression de formation, posts/réactions/commentaires, défis à réponse vérifiée, opportunités/candidatures, projets, événements et assistant de recommandation local.
-
-Voir [l'architecture](docs/architecture.md), le [développement](docs/development.md), la [sécurité](docs/security.md), l'[API](docs/api.md), les [données](docs/database.md) et la [roadmap](docs/roadmap.md).
-
-## Ports locaux
-
-IVOIREX n’expose pas les ports de développement classiques : le web utilise **43100** et l’API **43101**. Après avoir récupéré la branche qui contient ce réglage, vérifiez la configuration effectivement utilisée avant le démarrage :
-
-```bash
-git log -1 --oneline
-docker compose config
 docker compose down --remove-orphans
 docker compose up --build
 ```
 
-Si la sortie de `docker compose config` contient encore `3000:80` ou `8000:8000`, le répertoire local ne contient pas encore le commit de changement de ports : récupérez la branche/PR à jour puis relancez les commandes ci-dessus. Les ports publiés attendus sont `43100:80` (web) et `43101:8000` (API).
+- World : http://localhost:43100
+- API OpenAPI : http://localhost:43101/docs
+- Health : http://localhost:43101/health
+
+## Vérifier
+
+```bash
+cd apps/web && npm install && npm run typecheck && npm run build
+cd ../api && pip install -r requirements.txt && pytest -q
+```
+
+Voir `docs/` pour les décisions d’architecture, sécurité, IA, temps réel, 3D et déploiement. Les fonctionnalités non actives ne sont pas présentées comme livrées dans ces documents.

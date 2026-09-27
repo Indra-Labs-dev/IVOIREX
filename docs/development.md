@@ -1,11 +1,12 @@
 # Développement
 
 ```bash
-cd apps/api
-python -m venv .venv && . .venv/bin/activate
+cd apps/web && npm install && npm run typecheck && npm run build
+cd ../api && python -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
 pytest -q
-uvicorn app.main:app --reload
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
 ```
 
-Lancer le frontend via un serveur statique, ou utiliser `docker compose up --build`. Les valeurs sensibles sont uniquement fournies par variables d'environnement; ne commitez jamais `.env`.
+Docker reste la voie recommandée pour lancer les services d’infrastructure. Le développement local API peut employer SQLite, mais PostgreSQL doit être utilisé pour valider les migrations.

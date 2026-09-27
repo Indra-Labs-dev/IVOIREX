@@ -1,4 +1,14 @@
-FROM nginx:1.27-alpine
-COPY . /usr/share/nginx/html
-RUN rm -f /usr/share/nginx/html/Dockerfile
-EXPOSE 80
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+FROM node:22-alpine
+WORKDIR /app
+RUN addgroup -S app && adduser -S app -G app
+COPY --from=build --chown=app:app /app/.next/standalone ./
+COPY --from=build --chown=app:app /app/.next/static ./.next/static
+USER app
+EXPOSE 3000
+CMD ["node","server.js"]

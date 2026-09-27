@@ -1,3 +1,3 @@
-# Sécurité
+# Security
 
-Les mots de passe sont hachés bcrypt et les sessions sont des JWT signés avec expiration. Pydantic valide toutes les entrées écrites; SQLAlchemy lie les paramètres SQL. Les actions utilisateur requièrent le JWT et les contraintes SQL préviennent les doublons. CORS est configurable. En production, remplacer le secret JWT, servir HTTPS, déplacer le JWT dans un cookie HttpOnly avec protection CSRF, mettre un rate limiter Redis, ajouter des migrations, des en-têtes de sécurité et un contrôle d'accès RBAC administratif.
+Les mots de passe sont hachés par bcrypt ; les sessions sont des JWT signés et expirants. Pydantic valide les entrées, SQLAlchemy lie les requêtes et les contraintes SQL préviennent les doublons d’inscription. Pour production : secrets gérés hors Git, HTTPS, cookies HttpOnly+CSRF ou rotation de tokens, Alembic, rate limiting Redis, audit log, RBAC et security headers sont requis avant ouverture publique.

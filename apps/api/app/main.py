@@ -69,7 +69,7 @@ def serialize_user(u): return {"id":u.id,"email":u.email,"username":u.username,"
 def gain(s,u,amount): u.xp+=amount; u.reputation+=max(1,amount//20)
 
 app=FastAPI(title="IVOIREX API",version="1.0.0")
-app.add_middleware(CORSMiddleware,allow_origins=os.getenv("CORS_ORIGINS","http://localhost:3000").split(","),allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
+app.add_middleware(CORSMiddleware,allow_origins=os.getenv("CORS_ORIGINS","http://localhost:43100").split(","),allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 @app.on_event("startup")
 def start():
  Base.metadata.create_all(engine)

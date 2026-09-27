@@ -1,7 +1,7 @@
 services:
   web:
     build: ./apps/web
-    ports: ["3000:80"]
+    ports: ["43100:80"]
     depends_on: [api]
     networks: [ivoirex]
   api:
@@ -9,8 +9,8 @@ services:
     environment:
       DATABASE_URL: postgresql://ivoirex:change-me-in-production@postgres:5432/ivoirex
       JWT_SECRET: replace-this-development-secret-before-production
-      CORS_ORIGINS: http://localhost:3000
-    ports: ["8000:8000"]
+      CORS_ORIGINS: http://localhost:43100,http://127.0.0.1:43100
+    ports: ["43101:8000"]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

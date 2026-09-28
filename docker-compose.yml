@@ -1,47 +1,171 @@
 services:
-  web:
-    build: ./apps/web
-    ports: ["43100:80"]
-    depends_on: [api]
-    networks: [ivoirex]
-  api:
-    build: ./apps/api
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: app/Dockerfile
+    ports: ["43100:3000"]
     environment:
-      DATABASE_URL: postgresql://ivoirex:change-me-in-production@postgres:5432/ivoirex
-      JWT_SECRET: replace-this-development-secret-before-production
-      CORS_ORIGINS: http://localhost:43100,http://127.0.0.1:43100
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:43101/api/v1}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:43100}
+      API_INTERNAL_URL: http://backend:8000/api/v1
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-15}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      TRUST_CLIENT_IP_HEADERS: ${TRUST_CLIENT_IP_HEADERS:-false}
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      app:
+        ipv4_address: 172.29.0.10
+  backend:
+    build: ./backend
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ivoirex}:${POSTGRES_PASSWORD:-ivoirex-dev}@postgres:5432/${POSTGRES_DB:-ivoirex}
+      JWT_SECRET: ${JWT_SECRET:-development-only-change-me-32-bytes}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:43100,http://127.0.0.1:43100}
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-15}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
+      REDIS_URL: redis://redis:6379/0
+      TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:-172.29.0.10}
     ports: ["43101:8000"]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
       interval: 10s
       timeout: 3s
       retries: 5
-    networks: [ivoirex]
+    restart: unless-stopped
+    networks: [app]
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ivoirex
-      POSTGRES_USER: ivoirex
-      POSTGRES_PASSWORD: change-me-in-production
+      POSTGRES_DB: ${POSTGRES_DB:-ivoirex}
+      POSTGRES_USER: ${POSTGRES_USER:-ivoirex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ivoirex-dev}
     volumes: [postgres_data:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ivoirex -d ivoirex"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [ivoirex]
+    restart: unless-stopped
+    networks: [app]
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
     volumes: [redis_data:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [ivoirex]
-volumes: { postgres_data: {}, redis_data: {} }
-networks: { ivoirex: {} }
+    restart: unless-stopped
+    networks: [app]
+  postgres-campus-test:
+    image: postgres:16-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_DB: ivoirex_test
+      POSTGRES_USER: campus_test
+      POSTGRES_PASSWORD: campus-test-only
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus_test -d ivoirex_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [app]
+  campus-integration:
+    profiles: [test]
+    build: ./backend
+    environment:
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql+psycopg://campus_test:campus-test-only@postgres-campus-test:5432/ivoirex_test
+      JWT_SECRET: campus-integration-test-secret-32-bytes-minimum
+      CORS_ORIGINS: http://localhost:43100
+      REDIS_URL: redis://redis:6379/0
+      RUN_POSTGRES_INTEGRATION: "1"
+    depends_on:
+      postgres-campus-test: { condition: service_healthy }
+    command: ["sh", "-c", "alembic upgrade head && python -m app.seed.campus_demo && python -m pytest -p no:cacheprovider -q tests/api/test_campus.py tests/integration/test_campus_postgres.py"]
+    networks: [app]
+  postgres-e2e:
+    image: postgres:16-alpine
+    profiles: [e2e]
+    environment:
+      POSTGRES_DB: ivoirex_e2e
+      POSTGRES_USER: campus_e2e
+      POSTGRES_PASSWORD: campus-e2e-only
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus_e2e -d ivoirex_e2e"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [app]
+  backend-e2e:
+    profiles: [e2e]
+    build: ./backend
+    environment:
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql+psycopg://campus_e2e:campus-e2e-only@postgres-e2e:5432/ivoirex_e2e
+      JWT_SECRET: campus-e2e-test-secret-with-at-least-32-bytes
+      CORS_ORIGINS: http://frontend-e2e:3000
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres-e2e: { condition: service_healthy }
+    command: ["sh", "-c", "alembic upgrade head && python -m app.seed.campus_demo && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [app]
+  frontend-e2e:
+    profiles: [e2e]
+    build:
+      context: ./frontend
+      dockerfile: app/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://backend-e2e:8000/api/v1
+      COOKIE_SECURE: "false"
+      JWT_ACCESS_MINUTES: "15"
+      JWT_REFRESH_DAYS: "14"
+      TRUST_CLIENT_IP_HEADERS: "false"
+    depends_on:
+      backend-e2e: { condition: service_healthy }
+    ports: ["127.0.0.1:43102:3000"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [app]
+  campus-e2e:
+    profiles: [e2e]
+    build:
+      context: ./frontend/app
+      dockerfile: Dockerfile.e2e
+    environment:
+      E2E_BASE_URL: http://frontend-e2e:3000
+    depends_on:
+      frontend-e2e: { condition: service_healthy }
+    networks: [app]
+volumes:
+  postgres_data:
+  redis_data:
+networks:
+  app:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24

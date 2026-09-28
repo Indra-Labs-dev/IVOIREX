@@ -1,3 +1,3 @@
 # Design system
 
-Les tokens racines couvrent graphite, ivoire, orange IVOIREX et vert ivoirien contextuel. Les primitives actuelles sont `cta`, `pill`, `card`, grille, stat et surface World. Elles sont volontairement limitées afin d’être consolidées avant l’ajout de composants Radix/shadcn.
+Le logo officiel à la racine du dépôt est la source d’identité; l’application le sert depuis `frontend/public/images/ivoirex-logo.png` sans en altérer le ratio ni la couleur. Les tokens couvrent graphite, ivoire, orange IVOIREX et vert ivoirien contextuel. L’interface profil utilise surfaces sombres, lumière orange maîtrisée, accents tricolores ponctuels, états de focus clavier et réduction des animations selon les préférences système. Les icônes, Apple touch icon et image Open Graph réutilisent le même logo officiel. Les polices restent sur la pile système afin de ne pas bloquer le rendu sur un service externe.

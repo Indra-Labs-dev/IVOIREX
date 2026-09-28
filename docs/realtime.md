@@ -1,3 +1,3 @@
 # Realtime
 
-Les mutations applicatives sont conçues pour produire des événements de domaine. Une prochaine itération diffusera ces événements via SSE/WebSocket pour notifications, présence et activité. Redis est déjà présent pour fournir le fan-out et les limites de débit.
+Aucun WebSocket, SSE ou fan-out Redis n’est implémenté. Redis n’est pas utilisé pour du temps réel ; il stocke actuellement les compteurs du limiteur de débit des routes d’authentification.

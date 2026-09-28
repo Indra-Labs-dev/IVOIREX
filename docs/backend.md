@@ -1,0 +1,3 @@
+# Backend
+
+FastAPI expose les routes versionnées sous `/api/v1`, Swagger sous `/docs` et OpenAPI sous `/api/v1/openapi.json`. Campus fournit le catalogue public paginé et filtrable, les détails de cours publiés, l’inscription authentifiée, la lecture de leçon réservée aux inscrits et la complétion idempotente. La progression et le statut de cours sont calculés depuis `lesson_progress`; aucun XP ni certificat n’est simulé. L’API ne propose aucune écriture utilisateur des contenus de cours. Les tests unitaires utilisent SQLite en mémoire; `scripts/test-campus-postgres.sh` applique les migrations et teste les relations sur PostgreSQL temporaire.

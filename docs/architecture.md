@@ -1,3 +1,5 @@
 # Architecture
 
-IVOIREX est reconstruit sur un frontend Next.js strict et une API FastAPI. L’API sépare aujourd’hui le noyau (`core/database`), le domaine (`models/domain`) et l’entrée HTTP (`main`), afin que les prochains routers/services/repositories soient ajoutés sans mélanger les responsabilités. PostgreSQL est la cible runtime. Le modèle de monde est une source d’entrée unique dans les boucles produit réelles : cours, profil, contribution et recherche.
+`frontend/app` héberge l’interface Next.js et son petit BFF de session ; `backend/app` héberge uniquement l’API FastAPI. Le BFF garde les jetons dans des cookies HttpOnly et transmet les appels authentifiés à l’API. PostgreSQL persiste comptes et profils ; Alembic est le seul mécanisme de changement de schéma. Redis stocke les compteurs de limite de débit de l’authentification ; il ne porte pas encore de sessions, cache produit ou événements temps réel.
+
+Le backend sépare routeurs versionnés, dépendances HTTP, schémas, configuration, services, sécurité et modèles. Les parcours produit réels couvrent création de compte, connexion, déconnexion et profil personnel modifiable. Les autres domaines restent à implémenter avec leur propre migration, service, contrat et tests.

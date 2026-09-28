@@ -1,30 +1,39 @@
-# IVOIREX V1 Ultra
+# IVOIREX — Le futur se construit ici
 
-**La ville numérique de la nouvelle génération ivoirienne.** IVOIREX relie un parcours d’apprentissage, la contribution communautaire, les challenges, les projets et les opportunités dans un même monde.
+IVOIREX est une plateforme numérique pensée en Côte d’Ivoire pour apprendre, créer et faire grandir les talents locaux. Cette première tranche produit propose un compte sécurisé et un profil personnel réellement enregistré dans PostgreSQL.
 
-## Architecture active
+## Démarrer
 
-- `apps/web` — Next.js 15 / React 19 / TypeScript strict, avec la carte IVOIREX World et recherche API.
-- `apps/api` — FastAPI, SQLAlchemy 2, Pydantic v2, authentification JWT et PostgreSQL.
-- `postgres` et `redis` — services privés Docker ; Redis est réservé à la future diffusion realtime/rate limiting.
-
-## Lancer
-
-```bash
+```sh
 cp .env.example .env
-docker compose down --remove-orphans
 docker compose up --build
 ```
 
-- World : http://localhost:43100
-- API OpenAPI : http://localhost:43101/docs
-- Health : http://localhost:43101/health
+- Frontend : http://localhost:43100
+- API et OpenAPI : http://localhost:43101/docs
+- Schéma OpenAPI : http://localhost:43101/api/v1/openapi.json
+- Santé API : http://localhost:43101/health
+- Profil : http://localhost:43100 (création de compte, connexion et édition de profil)
 
-## Vérifier
+Au premier lancement, le conteneur API applique les migrations Alembic avant de démarrer Uvicorn. Les valeurs de `.env.example` sont réservées au développement local.
 
-```bash
-cd apps/web && npm install && npm run typecheck && npm run build
-cd ../api && pip install -r requirements.txt && pytest -q
+## Développement
+
+```sh
+cd frontend/app
+npm install
+npm run api:types   # l’API doit être démarrée
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Voir `docs/` pour les décisions d’architecture, sécurité, IA, temps réel, 3D et déploiement. Les fonctionnalités non actives ne sont pas présentées comme livrées dans ces documents.
+```sh
+cd backend
+python -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+python -m pytest
+```
+
+Voir [docs/ARCHITECTURE-AUDIT.md](docs/ARCHITECTURE-AUDIT.md) pour l’inventaire, les décisions, les limites et les étapes suivantes.

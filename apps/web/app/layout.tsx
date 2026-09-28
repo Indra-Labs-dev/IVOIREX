@@ -1,1 +1,0 @@
-import './globals.css'; import type { Metadata } from 'next'; export const metadata: Metadata={title:'IVOIREX — Le futur se construit ici',description:'La ville numérique ivoirienne.'}; export default function Layout({children}:{children:React.ReactNode}){return <html lang="fr"><body>{children}</body></html>}

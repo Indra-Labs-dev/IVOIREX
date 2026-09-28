@@ -1,3 +1,3 @@
 # Déploiement
 
-Démarrage local : `docker compose up --build`. Le web est publié sur `43100`, l’API sur `43101`; PostgreSQL et Redis restent privés au réseau Compose. Avant production, injecter les secrets via le gestionnaire de secrets de la plateforme et remplacer les valeurs de développement.
+Le Compose actuel est destiné au développement. Il utilise HTTP local, valeurs par défaut non secrètes, `COOKIE_SECURE=false`, aucun proxy TLS, révocation individuelle de session, observabilité ou sauvegarde automatisée. Il ne constitue pas une configuration production. En HTTPS, définir `COOKIE_SECURE=true`, le domaine public, les secrets, backups, politique réseau, `TRUSTED_PROXY_IPS` et `TRUST_CLIENT_IP_HEADERS=true` uniquement si le proxy remplace `X-Forwarded-For`, migrations supervisées et health monitoring avant déploiement public.

@@ -1,0 +1,5 @@
+# Authentication
+
+L’inscription et la connexion vérifient les entrées Pydantic et hachent les nouveaux mots de passe avec Argon2. Les anciens hashes bcrypt du schéma historique sont vérifiés puis re-hachés en Argon2 à la première connexion réussie. Elles émettent un JWT d’accès de 15 minutes et un JWT de renouvellement de 14 jours, de types distincts. `/me` et `/profile/me` requièrent un access token. `/refresh` émet une nouvelle paire ; un refresh token reste réutilisable jusqu’à son expiration ou un logout du compte, faute de rotation individuelle. `/logout` incrémente une version persistée du compte et invalide tous ses jetons déjà émis. Cela ferme toutes les sessions de ce compte, plutôt qu’une session individuelle.
+
+L’interface web transmet les identifiants à un route handler Next.js de même origine. Il garde les jetons dans des cookies `HttpOnly`, `SameSite=Lax` (et `Secure` en production), et le navigateur ne lit jamais le Bearer token. Les mutations vérifient l’origine de la requête. L’API publique reste compatible avec les clients Bearer. La rotation des refresh tokens et les sessions révocables individuellement restent à concevoir avant production.

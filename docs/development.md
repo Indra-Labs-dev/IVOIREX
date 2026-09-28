@@ -1,12 +1,3 @@
-# Développement
+# Développement local
 
-```bash
-cd apps/web && npm install && npm run typecheck && npm run build
-cd ../api && python -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
-pytest -q
-alembic revision --autogenerate -m "describe change"
-alembic upgrade head
-```
-
-Docker reste la voie recommandée pour lancer les services d’infrastructure. Le développement local API peut employer SQLite, mais PostgreSQL doit être utilisé pour valider les migrations.
+Démarrer PostgreSQL et Redis via `docker compose up postgres redis -d` ou lancer toute la pile avec `docker compose up --build`. Après migration, créer/actualiser les cours de démonstration avec `docker compose exec backend python -m app.seed.campus_demo`. Les tests unitaires s’exécutent avec `docker compose exec backend python -m pytest -p no:cacheprovider`; `./scripts/test-campus-postgres.sh` valide la migration et le parcours API dans une base PostgreSQL tmpfs. `./scripts/test-campus-e2e.sh` lance Playwright contre une pile frontend/backend/PostgreSQL jetable. Frontend : `cd frontend/app && npm ci`, puis `npm run api:types`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm audit`.

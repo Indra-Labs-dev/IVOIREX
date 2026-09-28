@@ -1,5 +1,11 @@
 .env
+.env.*.local
 __pycache__/
 .pytest_cache/
-*.pyc
+*.py[cod]
+*.db
+.venv/
 node_modules/
+.next/
+coverage/
+dist/
